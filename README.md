@@ -1,1 +1,21 @@
-# 🚀 FastSearch ![Java](https://img.shields.io/badge/Java-8%2B-orange?logo=openjdk) ![License](https://img.shields.io/badge/License-MIT-blue) ![Status](https://img.shields.io/badge/Status-Active-success) > ⚡ Lightweight, high-performance Java tool for quickly searching files across directories and subfolders. **FastSearch** is a Java-based utility that efficiently scans through directories and subdirectories to locate files using keywords or patterns. It’s designed for **speed**, **simplicity**, and **integration** — whether as a standalone search tool or part of a larger system like a remote file manager or client-side mod. **Features:** 🔍 Fast recursive search through directories ⚙️ Lightweight and dependency-free (Java 8 compatible) 🧩 Easy integration with existing Java projects 💬 Optional webhook support for logging or remote automation ⚡ Optimized for performance and low resource use **Installation:** Prerequisites: Java 8 or higher, Git (optional). ```bash git clone https://github.com/trashdino0/FastSearch.git cd FastSearch ``` Open the project in your IDE (IntelliJ IDEA, Eclipse, etc.) or build it manually using your preferred method. **Usage:** Command-line example: ```bash java -jar FastSearch.jar --path "C:\Users\Example" --keyword "notes" ``` In Java code: ```java SearchEngine engine = new SearchEngine(); engine.search("keyword", new File(".")); ``` **Integration Ideas:** FastSearch can be combined with automation or remote management tools. For example: scan directories for specific files, upload found files to a temporary host (like file.io), and send file links to a Discord webhook. This enables seamless file searching, uploading, and remote access. **Optimization & Design Notes:** Modular design: search logic is separated from I/O and webhook components Efficient file traversal and pattern matching Extensible architecture for adding regex, caching, or multi-threading Stream-based scanning to minimize memory usage **Future Improvements:** ✅ Regex and advanced pattern search ✅ Multi-threaded scanning ✅ GUI interface ✅ Indexed caching for faster repeated searches **Project Structure:** ``` FastSearch/ ├─ src/ │ ├─ main/java/... # Core search classes │ └─ util/... # Helper utilities ├─ README.md ├─ build.gradle or pom.xml └─ LICENSE ``` **Contributing:** Contributions are welcome! Fork the repo, create a new branch (`feature/your-feature`), commit your changes, and submit a pull request. Include comments and basic testing for any new features. **License:** This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details. **Acknowledgements:** Thanks to the open-source and modding communities for inspiration, and to everyone contributing to lightweight, efficient Java tooling. > 💡 *“Optimize later; first make it correct and readable.”*
+# 🚀 FastSearch
+![Java](https://img.shields.io/badge/Java-8%2B-orange?logo=openjdk) ![License](https://img.shields.io/badge/License-MIT-blue) ![Status](https://img.shields.io/badge/Status-Active-success)
+
+> ⚡ Lightweight, high-performance Java tool for quickly searching files across directories and subfolders.
+
+**FastSearch** is a Java-based utility that efficiently scans through directories and subdirectories to locate files using keywords or patterns. It’s designed for **speed**, **simplicity**, and **integration** — whether as a standalone search tool or part of a larger system like a remote file manager or client-side mod.
+
+## Features
+- 🔍 Fast recursive search through directories  
+- ⚙️ Lightweight and dependency-free (Java 8 compatible)  
+- 🧩 Easy integration with existing Java projects  
+- 💬 Optional webhook support for logging or remote automation  
+- ⚡ Optimized for performance and low resource use
+
+## Installation
+**Prerequisites:** Java 8 or higher, Git (optional).  
+
+**Steps:**
+```bash
+git clone https://github.com/trashdino0/FastSearch.git
+cd FastSearch
