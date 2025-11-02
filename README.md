@@ -16,7 +16,7 @@ Fast Search is a small desktop tool (Java/JavaFX) to quickly find files and sear
 
 - Project: Fast Search
 - ArtifactId: `fast-search`
-- Version: `2.0.0` (from `pom.xml`)
+- Version: `1.0.0` (from `pom.xml`)
 - Language: Java 21
 - UI: JavaFX 22
 - Dependencies: Gson (for JSON config)
