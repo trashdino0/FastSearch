@@ -1,0 +1,38 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.search-panel {
+    -fx-background-color: #f4f4f4;
+    -fx-background-radius: 5;
+}
+
+.search-button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.delete-button {
+    -fx-background-color: #f44336;
+    -fx-text-fill: white;
+}
+
+.delete-button {
+    -fx-background-color: #f44336;
+    -fx-text-fill: white;
+}
+
+.status-bar {
+    -fx-background-color: #e0e0e0;
+}
+
+.timer-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2196F3;
+}
+
+.results-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}

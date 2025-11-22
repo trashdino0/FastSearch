@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import java.net.URL?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fastsearch.MainWindowController">
+    <stylesheets>
+        <URL value="@styles.css" />
+    </stylesheets>
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <top>
+        <VBox spacing="10" styleClass="search-panel">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Search in:" prefWidth="80"/>
+                <TextField fx:id="searchFolderField" promptText="Select folder to search (or leave empty for common folders)" editable="false" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="browseFolderButton" text="📁 Browse" onAction="#selectSearchFolder"/>
+                <Button fx:id="clearFolderButton" text="✕" onAction="#clearSearchFolder"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Mode:"/>
+                <ComboBox fx:id="searchModeCombo" prefWidth="120"/>
+                <Label text="Search:"/>
+                <TextField fx:id="searchField" promptText="Enter filename or text to search..." HBox.hgrow="ALWAYS" onAction="#performSearch"/>
+                <Label text="Extension:"/>
+                <TextField fx:id="extensionField" promptText=".txt, .pdf" prefWidth="100"/>
+                <Button fx:id="searchButton" text="Search" defaultButton="true" onAction="#performSearch" styleClass="search-button"/>
+                <ProgressIndicator fx:id="progressIndicator" prefWidth="25" prefHeight="25" visible="false"/>
+            </HBox>
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="Size:"/>
+                <TextField fx:id="minSizeField" promptText="Min (e.g., 10mb)" prefWidth="100"/>
+                <Label text="to"/>
+                <TextField fx:id="maxSizeField" promptText="Max" prefWidth="100"/>
+                <Separator orientation="VERTICAL"/>
+                <Label text="Modified after:"/>
+                <DatePicker fx:id="modifiedAfterPicker" prefWidth="140"/>
+                <CheckBox fx:id="todayOnlyCheck" text="Today only"/>
+                <Separator orientation="VERTICAL"/>
+                <Label text="Max results:"/>
+                <Spinner fx:id="maxResultsSpinner" prefWidth="100" editable="true"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="0" bottom="0" left="0"/>
+            </padding>
+            <Label text="Search Results" styleClass="results-label"/>
+            <TableView fx:id="resultsTable" VBox.vgrow="ALWAYS">
+                <placeholder>
+                    <Label text="No results yet. Enter a search query and click Search."/>
+                </placeholder>
+                <columns>
+                    <TableColumn fx:id="nameCol" text="Name" prefWidth="250"/>
+                    <TableColumn fx:id="pathCol" text="Path" prefWidth="400"/>
+                    <TableColumn fx:id="sizeCol" text="Size" prefWidth="100"/>
+                    <TableColumn fx:id="typeCol" text="Type" prefWidth="80"/>
+                    <TableColumn fx:id="modifiedCol" text="Modified" prefWidth="150"/>
+                </columns>
+                <contextMenu>
+                    <ContextMenu>
+                        <items>
+                            <MenuItem text="Open" onAction="#openSelected"/>
+                            <MenuItem text="Open Folder" onAction="#openFolderSelected"/>
+                            <MenuItem text="Copy Path" onAction="#copyPathSelected"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Delete" onAction="#deleteSelected" styleClass="delete-button"/>
+                        </items>
+                    </ContextMenu>
+                </contextMenu>
+            </TableView>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button text="Open" onAction="#openSelected"/>
+                <Button text="Open Folder" onAction="#openFolderSelected"/>
+                <Button text="Copy Path" onAction="#copyPathSelected"/>
+                <Button text="Delete" onAction="#deleteSelected" styleClass="delete-button"/>
+                <Button text="Export Results" onAction="#exportResults"/>
+                <Button text="Clear" onAction="#clearResults"/>
+            </HBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="status-bar">
+            <padding>
+                <Insets top="5" right="5" bottom="5" left="5"/>
+            </padding>
+            <Label fx:id="statusLabel" text="Ready - Select a folder or leave empty to search common folders"/>
+            <Label fx:id="timerLabel" text="⏱ 0:00" styleClass="timer-label" visible="false"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="📋 History" onAction="#showHistoryDialog"/>
+            <Button text="⚙ Config" onAction="#showConfigDialog"/>
+            <Button text="ℹ About" onAction="#showAboutDialog"/>
+        </HBox>
+    </bottom>
+</BorderPane>
