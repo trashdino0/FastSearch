@@ -11,8 +11,10 @@ import javafx.scene.layout.VBox;
  */
 class HistoryDialog extends Dialog<SearchHistory> {
     private final ListView<SearchHistory> historyList;
+    private final SearchConfig config;
 
     public HistoryDialog(SearchConfig config) {
+        this.config = config;
         setTitle("Search History");
         setHeaderText("Recent Searches (double-click to re-run)");
 
@@ -54,6 +56,19 @@ class HistoryDialog extends Dialog<SearchHistory> {
 
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Apply theme to dialog pane directly in constructor
+        String stylesheet = "styles-dark.css";
+        if ("Light".equalsIgnoreCase(config.getTheme())) {
+            stylesheet = "styles-light.css";
+        }
+        try {
+            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
+            getDialogPane().getStylesheets().add(css);
+        } catch (Exception e) {
+            System.err.println("Could not load stylesheet for HistoryDialog: " + stylesheet);
+            e.printStackTrace();
+        }
 
         setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {

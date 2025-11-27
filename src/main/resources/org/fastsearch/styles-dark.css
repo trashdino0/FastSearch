@@ -1,0 +1,230 @@
+/* === Modern Dark Theme for FastSearch (Corrected) === */
+
+/* --- Root Variables --- */
+.root {
+    -fx-base: #2B2B2B;
+    -fx-background: #2B2B2B;
+    -fx-control-inner-background: #3C3F41;
+    -fx-control-inner-background-alt: -fx-control-inner-background;
+
+    -fx-accent: #007ACC; 
+    -fx-focus-color: -fx-accent;
+
+    -fx-text-background-color: #D3D3D3; /* Main text color */
+    -fx-font-family: "Segoe UI", "San Francisco", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+}
+
+/* --- General Pane/Layout Styles --- */
+.search-panel {
+    -fx-background-color: #313335;
+    -fx-background-radius: 8px;
+    -fx-border-color: #454545;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+}
+
+.status-bar {
+    -fx-background-color: #313335;
+    -fx-border-color: #454545;
+    -fx-border-width: 1px 0 0 0;
+}
+
+.results-label {
+    -fx-font-size: 1.2em;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-background-color;
+    -fx-padding: 5 0 0 0;
+}
+
+/* --- Controls: TextFields, ComboBoxes, etc. (FIXED) --- */
+.text-field,
+.combo-box,
+.spinner,
+.date-picker {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4px;
+    -fx-border-color: #555;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-text-fill: -fx-text-background-color; /* Ensures typed text is light */
+    -fx-prompt-text-fill: #8A8A8A; /* Ensures placeholder text is also light */
+}
+
+.text-field:focused,
+.combo-box:focused,
+.spinner:focused,
+.date-picker:focused {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, rgba(0, 122, 204, 0.3), 5, 0, 0, 0);
+}
+
+/* Style the text in the drop-down list */
+.combo-box .list-cell {
+    -fx-text-fill: -fx-text-background-color;
+    -fx-background-color: -fx-control-inner-background;
+}
+.combo-box .list-cell:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+.combo-box .list-view {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: #555;
+}
+
+.label {
+    -fx-text-fill: -fx-text-background-color;
+    -fx-font-weight: 500;
+}
+
+.check-box .box {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: #555;
+    -fx-border-radius: 3px;
+}
+.check-box:selected .mark {
+    -fx-background-color: -fx-text-background-color;
+}
+
+/* --- Buttons --- */
+.button {
+    -fx-background-color: #4A4D4F;
+    -fx-text-fill: -fx-text-background-color;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4px;
+    -fx-border-color: #555;
+    -fx-border-width: 1px;
+}
+
+.button:hover {
+    -fx-background-color: #5A5D5F;
+    -fx-border-color: #666;
+}
+
+.button:pressed {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+
+/* Primary Search Button */
+.search-button {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+}
+.search-button:hover {
+    -fx-background-color: derive(-fx-accent, 20%);
+}
+
+/* Stop Button */
+.stop-button {
+    -fx-background-color: #d9534f; /* A shade of red */
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+}
+
+.stop-button:hover {
+    -fx-background-color: derive(#d9534f, 20%);
+}
+
+/* Danger/Delete Button */
+.delete-button, .menu-item.delete-button .label {
+    -fx-text-fill: #FF6B6B;
+}
+.delete-button:hover {
+    -fx-background-color: #FF6B6B;
+    -fx-text-fill: white;
+}
+.menu-item.delete-button:focused .label {
+    -fx-text-fill: white;
+}
+.menu-item.delete-button:focused {
+     -fx-background-color: #FF6B6B;
+}
+
+
+/* --- TableView --- */
+.table-view {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: #555;
+    -fx-border-radius: 4px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #313335;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #555 transparent;
+    -fx-font-weight: bold;
+}
+
+.table-view .cell {
+    -fx-border-color: transparent;
+    -fx-padding: 8px;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: -fx-control-inner-background;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #414447;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #4a4d4f;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: derive(-fx-accent, -20%);
+}
+.table-view .table-row-cell:selected .text {
+    -fx-fill: -fx-text-background-color;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #888;
+}
+
+/* --- ScrollBar --- */
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+}
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #555;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+/* --- Menus --- */
+.context-menu {
+    -fx-background-color: #3C3F41;
+    -fx-border-color: #555;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 4, 3;
+}
+.menu-item .label {
+    -fx-text-fill: -fx-text-background-color;
+}
+.menu-item:focused {
+    -fx-background-color: -fx-accent;
+}
+.menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+.separator.menu-item {
+    -fx-padding: 0;
+}
+.separator.menu-item .line {
+    -fx-border-width: 1 0 0 0;
+    -fx-border-color: #555;
+}

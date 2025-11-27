@@ -16,6 +16,7 @@ import java.util.Optional;
  */
 class ConfigDialog extends Dialog<Void> {
     private final SearchConfig config;
+    private final ComboBox<String> themeCombo;
     private final Spinner<Integer> maxResultsSpinner;
     private final ListView<String> excludeList;
     private final ListView<String> foldersList;
@@ -30,6 +31,17 @@ class ConfigDialog extends Dialog<Void> {
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
         content.setPrefWidth(500);
+
+        // Theme
+        HBox themeBox = new HBox(10);
+        themeBox.setAlignment(Pos.CENTER_LEFT);
+        Label themeLabel = new Label("Theme:");
+        themeLabel.setPrefWidth(120);
+        themeCombo = new ComboBox<>();
+        themeCombo.setItems(FXCollections.observableArrayList("Light", "Dark"));
+        themeCombo.setValue(config.getTheme());
+        themeCombo.setPrefWidth(150);
+        themeBox.getChildren().addAll(themeLabel, themeCombo);
 
         // Max Results
         HBox maxResultsBox = new HBox(10);
@@ -72,6 +84,7 @@ class ConfigDialog extends Dialog<Void> {
         foldersButtons.getChildren().addAll(addFolderBtn, removeFolderBtn);
 
         content.getChildren().addAll(
+                themeBox,
                 maxResultsBox,
                 new Separator(),
                 excludeLabel, excludeList, excludeButtons,
@@ -81,6 +94,19 @@ class ConfigDialog extends Dialog<Void> {
 
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Apply theme to dialog pane directly in constructor
+        String stylesheet = "styles-dark.css";
+        if ("Light".equalsIgnoreCase(config.getTheme())) {
+            stylesheet = "styles-light.css";
+        }
+        try {
+            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
+            getDialogPane().getStylesheets().add(css);
+        } catch (Exception e) {
+            System.err.println("Could not load stylesheet for ConfigDialog: " + stylesheet);
+            e.printStackTrace();
+        }
 
         // Save on OK
         setResultConverter(dialogButton -> {
@@ -133,6 +159,7 @@ class ConfigDialog extends Dialog<Void> {
     }
 
     private void saveConfig() {
+        config.setTheme(themeCombo.getValue());
         config.setMaxResults(maxResultsSpinner.getValue());
         config.setExcludePatterns(new java.util.ArrayList<>(excludeList.getItems()));
         config.setExtraFolders(new java.util.ArrayList<>(foldersList.getItems()));

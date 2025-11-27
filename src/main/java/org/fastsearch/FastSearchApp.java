@@ -35,4 +35,27 @@ public class FastSearchApp extends Application {
             controller.saveConfig();
         }
     }
+
+    public static void applyTheme(Scene scene, String theme) {
+        System.out.println("FastSearchApp.applyTheme called. Theme: " + theme);
+        String stylesheet = "styles-dark.css";
+        if ("Light".equalsIgnoreCase(theme)) {
+            stylesheet = "styles-light.css";
+        }
+        System.out.println("FastSearchApp.applyTheme: Loading stylesheet: " + stylesheet);
+        
+        try {
+            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
+            if (scene != null) {
+                System.out.println("FastSearchApp.applyTheme: Scene is not null. Clearing and adding stylesheet.");
+                scene.getStylesheets().clear();
+                scene.getStylesheets().add(css);
+            } else {
+                System.out.println("FastSearchApp.applyTheme: Scene is null. Cannot apply stylesheet.");
+            }
+        } catch (Exception e) {
+            System.err.println("FastSearchApp.applyTheme: Could not load stylesheet: " + stylesheet);
+            e.printStackTrace();
+        }
+    }
 }

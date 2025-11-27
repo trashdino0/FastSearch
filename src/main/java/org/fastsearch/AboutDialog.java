@@ -12,7 +12,10 @@ import javafx.scene.layout.VBox;
  * About Dialog - Shows application information
  */
 public class AboutDialog extends Dialog<Void> {
-    public AboutDialog() {
+    private final SearchConfig config;
+
+    public AboutDialog(SearchConfig config) {
+        this.config = config;
         setTitle("About Fast Search");
         setHeaderText("Fast File & Content Search Tool");
 
@@ -43,6 +46,19 @@ public class AboutDialog extends Dialog<Void> {
 
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        // Apply theme to dialog pane directly in constructor
+        String stylesheet = "styles-dark.css";
+        if ("Light".equalsIgnoreCase(config.getTheme())) {
+            stylesheet = "styles-light.css";
+        }
+        try {
+            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
+            getDialogPane().getStylesheets().add(css);
+        } catch (Exception e) {
+            System.err.println("Could not load stylesheet for AboutDialog: " + stylesheet);
+            e.printStackTrace();
+        }
     }
 
     private static Label getLabel() {

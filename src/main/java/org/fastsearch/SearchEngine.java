@@ -45,11 +45,11 @@ public class SearchEngine {
     }
 
     public void searchFilenameRealtime(String query, String extension, String customFolder, SearchFilters filters,
-                                       int maxResults, Consumer<FileResult> resultCallback) {
+                                       int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback) {
         forkJoinPool = new ForkJoinPool();
         Set<String> searchRoots = getSearchRoots(customFolder);
         String pattern = buildPattern(query);
-        Pattern regex = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+        Pattern regex = Pattern.compile(pattern, isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
         Collection<FileResult> allResults = new ConcurrentLinkedQueue<>();
 
         SearchTask task = new SearchTask(searchRoots, regex, extension, filters, maxResults, resultCallback, allResults, true);
@@ -57,10 +57,13 @@ public class SearchEngine {
     }
 
     public void searchContentRealtime(String text, String extension, String customFolder,
-                                      SearchFilters filters, int maxResults, Consumer<FileResult> resultCallback) {
+                                      SearchFilters filters, int maxResults, boolean isCaseSensitive,
+                                      boolean isRegex, Consumer<FileResult> resultCallback) {
         forkJoinPool = new ForkJoinPool();
         Set<String> searchRoots = getSearchRoots(customFolder);
-        Pattern contentPattern = Pattern.compile(Pattern.quote(text), Pattern.CASE_INSENSITIVE);
+        String patternString = isRegex ? text : Pattern.quote(text);
+        int flags = isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+        Pattern contentPattern = Pattern.compile(patternString, flags);
         Collection<FileResult> allResults = new ConcurrentLinkedQueue<>();
 
         SearchTask task = new SearchTask(searchRoots, contentPattern, extension, filters, maxResults, resultCallback, allResults, false);

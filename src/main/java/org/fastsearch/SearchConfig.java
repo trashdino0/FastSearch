@@ -22,6 +22,7 @@ class SearchConfig {
     ));
     private List<String> extraFolders = new ArrayList<>();
     private List<SearchHistory> history = new ArrayList<>();
+    private String theme = "Light";
 
     public static SearchConfig load() {
         File configFile = new File(CONFIG_FILE);
@@ -98,5 +99,13 @@ class SearchConfig {
 
     public void setHistory(List<SearchHistory> history) {
         this.history = history;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
 }

@@ -2,13 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import java.net.URL?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fastsearch.MainWindowController">
-    <stylesheets>
-        <URL value="@styles.css" />
-    </stylesheets>
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
     </padding>
@@ -31,6 +27,8 @@
                 <TextField fx:id="searchField" promptText="Enter filename or text to search..." HBox.hgrow="ALWAYS" onAction="#performSearch"/>
                 <Label text="Extension:"/>
                 <TextField fx:id="extensionField" promptText=".txt, .pdf" prefWidth="100"/>
+                <CheckBox fx:id="caseSensitiveCheck" text="Case-Sensitive"/>
+                <CheckBox fx:id="regexCheck" text="Regex"/>
                 <Button fx:id="searchButton" text="Search" defaultButton="true" onAction="#performSearch" styleClass="search-button"/>
                 <Button fx:id="stopButton" text="Stop" onAction="#stopSearch" styleClass="stop-button" visible="false"/>
                 <ProgressIndicator fx:id="progressIndicator" prefWidth="25" prefHeight="25" visible="false"/>

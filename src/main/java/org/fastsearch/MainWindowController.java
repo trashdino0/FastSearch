@@ -53,6 +53,10 @@ public class MainWindowController {
     private Button browseFolderButton;
     @FXML
     private Button clearFolderButton;
+    @FXML
+    private CheckBox caseSensitiveCheck;
+    @FXML
+    private CheckBox regexCheck;
 
     @FXML
     private TableColumn<FileResult, String> nameCol;
@@ -78,6 +82,9 @@ public class MainWindowController {
         config = SearchConfig.load();
         searchEngine = new SearchEngine(config);
         searchResults = FXCollections.observableArrayList();
+
+        // Apply theme on startup
+        Platform.runLater(() -> FastSearchApp.applyTheme(searchField.getScene(), config.getTheme()));
 
         searchModeCombo.getItems().addAll("Filename", "Content");
         searchModeCombo.setValue("Filename");
@@ -107,6 +114,16 @@ public class MainWindowController {
             });
             return row;
         });
+
+        searchModeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if ("Filename".equals(newVal)) {
+                regexCheck.setSelected(false);
+                regexCheck.setDisable(true);
+            } else {
+                regexCheck.setDisable(false);
+            }
+        });
+        regexCheck.setDisable("Filename".equals(searchModeCombo.getValue()));
     }
 
     public void saveConfig() {
@@ -128,6 +145,8 @@ public class MainWindowController {
         String mode = searchModeCombo.getValue();
         String extension = extensionField.getText().trim();
         String customFolder = searchFolderField.getText().trim();
+        boolean isCaseSensitive = caseSensitiveCheck.isSelected();
+        boolean isRegex = !regexCheck.isDisabled() && regexCheck.isSelected();
 
         SearchFilters filters = new SearchFilters();
         filters.setMinSize(parseSize(minSizeField.getText()));
@@ -153,10 +172,10 @@ public class MainWindowController {
                 try {
                     if (mode.equals("Filename")) {
                         searchEngine.searchFilenameRealtime(query, extension, customFolder, filters, maxResults,
-                                result -> addResultToTable(result));
+                                isCaseSensitive, result -> addResultToTable(result));
                     } else {
                         searchEngine.searchContentRealtime(query, extension, customFolder, filters, maxResults,
-                                result -> addResultToTable(result));
+                                isCaseSensitive, isRegex, result -> addResultToTable(result));
                     }
                 } catch (Exception e) {
                     if (!isCancelled()) {
@@ -392,6 +411,8 @@ public class MainWindowController {
         ConfigDialog dialog = new ConfigDialog(config);
         dialog.showAndWait();
         searchEngine = new SearchEngine(config);
+        // Apply theme to main window, just in case it was changed in config
+        FastSearchApp.applyTheme(searchField.getScene(), config.getTheme());
     }
 
     @FXML
@@ -410,7 +431,7 @@ public class MainWindowController {
 
     @FXML
     private void showAboutDialog() {
-        AboutDialog dialog = new AboutDialog();
+        AboutDialog dialog = new AboutDialog(config);
         dialog.showAndWait();
     }
 
