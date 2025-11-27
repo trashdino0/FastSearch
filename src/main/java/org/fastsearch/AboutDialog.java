@@ -23,17 +23,7 @@ public class AboutDialog extends Dialog<Void> {
         Label versionLabel = new Label("Version 1.0.0");
         versionLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
-        Label descLabel = new Label(
-                "A powerful file and content search tool\n" +
-                        "with advanced filtering and history tracking.\n\n" +
-                        "Features:\n" +
-                        "• Real-time search results\n" +
-                        "• Deep folder recursion\n" +
-                        "• Content search in text files\n" +
-                        "• Advanced filtering options\n" +
-                        "• Search history tracking"
-        );
-        descLabel.setStyle("-fx-text-alignment: center;");
+        Label descLabel = getLabel();
 
         Label authorLabel = new Label("Created by TrashDino");
         authorLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: gray;");
@@ -53,5 +43,22 @@ public class AboutDialog extends Dialog<Void> {
 
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+    }
+
+    private static Label getLabel() {
+        Label descLabel = new Label(
+                """
+                        A powerful file and content search tool
+                        with advanced filtering and history tracking.
+                        
+                        Features:
+                        • Real-time search results
+                        • Deep folder recursion
+                        • Content search in text files
+                        • Advanced filtering options
+                        • Search history tracking"""
+        );
+        descLabel.setStyle("-fx-text-alignment: center;");
+        return descLabel;
     }
 }

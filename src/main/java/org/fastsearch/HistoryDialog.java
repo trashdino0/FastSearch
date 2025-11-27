@@ -22,7 +22,7 @@ class HistoryDialog extends Dialog<SearchHistory> {
 
         historyList = new ListView<>();
         historyList.setItems(FXCollections.observableArrayList(config.getHistory()));
-        historyList.setCellFactory(lv -> new ListCell<SearchHistory>() {
+        historyList.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(SearchHistory item, boolean empty) {
                 super.updateItem(item, empty);

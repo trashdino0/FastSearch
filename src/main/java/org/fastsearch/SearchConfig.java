@@ -60,7 +60,7 @@ class SearchConfig {
     }
 
     public void addToHistory(String mode, String query, String extension, int resultsCount) {
-        history.add(0, new SearchHistory(mode, query, extension, resultsCount));
+        history.addFirst(new SearchHistory(mode, query, extension, resultsCount));
         if (history.size() > 20) {
             history = history.subList(0, 20);
         }

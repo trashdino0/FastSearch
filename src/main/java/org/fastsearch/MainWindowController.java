@@ -428,15 +428,16 @@ public class MainWindowController {
         sizeStr = sizeStr.toLowerCase().trim();
         double multiplier = 1;
 
+        String substring = sizeStr.substring(0, sizeStr.length() - 2);
         if (sizeStr.endsWith("kb")) {
             multiplier = 1024;
-            sizeStr = sizeStr.substring(0, sizeStr.length() - 2);
+            sizeStr = substring;
         } else if (sizeStr.endsWith("mb")) {
             multiplier = 1024 * 1024;
-            sizeStr = sizeStr.substring(0, sizeStr.length() - 2);
+            sizeStr = substring;
         } else if (sizeStr.endsWith("gb")) {
             multiplier = 1024 * 1024 * 1024;
-            sizeStr = sizeStr.substring(0, sizeStr.length() - 2);
+            sizeStr = substring;
         }
 
         try {
