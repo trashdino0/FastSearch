@@ -27,6 +27,7 @@ public class MainWindowController {
     @FXML private Label timerLabel;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Button searchButton;
+    @FXML private Button stopButton;
     @FXML private TextField minSizeField;
     @FXML private TextField maxSizeField;
     @FXML private DatePicker modifiedAfterPicker;
@@ -48,6 +49,7 @@ public class MainWindowController {
     private ObservableList<FileResult> searchResults;
     private SearchConfig config;
     private SearchEngine searchEngine;
+    private Task<Void> searchTask;
 
     @FXML
     public void initialize() {
@@ -91,6 +93,10 @@ public class MainWindowController {
 
     @FXML
     private void performSearch() {
+        if (searchTask != null && searchTask.isRunning()) {
+            searchTask.cancel(true);
+        }
+        
         String query = searchField.getText().trim();
         if (query.isEmpty()) {
             showAlert("Error", "Please enter a search query", Alert.AlertType.ERROR);
@@ -117,7 +123,7 @@ public class MainWindowController {
 
         setSearching(true);
 
-        Task<Void> searchTask = new Task<>() {
+        searchTask = new Task<>() {
             @Override
             protected Void call() {
                 updateMessage("Searching...");
@@ -131,8 +137,10 @@ public class MainWindowController {
                                 result -> addResultToTable(result));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    throw e;
+                    if (!isCancelled()) {
+                        e.printStackTrace();
+                        throw e;
+                    }
                 }
 
                 return null;
@@ -157,8 +165,10 @@ public class MainWindowController {
                 setSearching(false);
                 updateStatus("Search failed");
                 Throwable ex = getException();
-                ex.printStackTrace();
-                showAlert("Error", "Search failed: " + ex.getMessage(), Alert.AlertType.ERROR);
+                if (ex != null) {
+                    ex.printStackTrace();
+                    showAlert("Error", "Search failed: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
             }
 
             @Override
@@ -169,9 +179,21 @@ public class MainWindowController {
             }
         };
 
+        searchEngine.setSearchTask(searchTask);
         Thread searchThread = new Thread(searchTask);
         searchThread.setDaemon(true);
         searchThread.start();
+    }
+
+    @FXML
+    private void stopSearch() {
+        if (searchTask != null && searchTask.isRunning()) {
+            searchTask.cancel(true);
+        }
+        if (searchEngine != null) {
+            searchEngine.cancelSearch();
+        }
+        setSearching(false);
     }
     
     @FXML
@@ -238,6 +260,7 @@ public class MainWindowController {
     private void setSearching(boolean searching) {
         searchButton.setDisable(searching);
         searchField.setDisable(searching);
+        stopButton.setVisible(searching);
         progressIndicator.setVisible(searching);
     }
 

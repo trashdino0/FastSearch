@@ -30,24 +30,8 @@
               <transformers>
                 <transformer>
                   <mainClass>org.fastsearch.Main</mainClass>
-                  <manifestEntries>
-                    <Built-By>TrashDino</Built-By>
-                    <Created-By>TrashDino</Created-By>
-                  </manifestEntries>
                 </transformer>
               </transformers>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                    <exclude>META-INF/versions/*/module-info.class</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <finalName>FastSearch-${project.version}</finalName>
             </configuration>
           </execution>
         </executions>

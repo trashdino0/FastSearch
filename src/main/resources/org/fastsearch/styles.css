@@ -119,6 +119,17 @@
     -fx-background-color: derive(-fx-accent, 20%);
 }
 
+/* Stop Button */
+.stop-button {
+    -fx-background-color: #d9534f; /* A shade of red */
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+}
+
+.stop-button:hover {
+    -fx-background-color: derive(#d9534f, 20%);
+}
+
 /* Danger/Delete Button */
 .delete-button, .menu-item.delete-button .label {
     -fx-text-fill: #FF6B6B;

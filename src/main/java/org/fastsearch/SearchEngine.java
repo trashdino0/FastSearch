@@ -1,5 +1,6 @@
 package org.fastsearch;
 
+import javafx.concurrent.Task;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +17,8 @@ import java.util.regex.Pattern;
 public class SearchEngine {
     private final SearchConfig config;
     private final List<PathMatcher> excludeMatchers;
-    private final ForkJoinPool forkJoinPool;
+    private ForkJoinPool forkJoinPool;
+    private Task<?> searchTask;
 
     public SearchEngine(SearchConfig config) {
         this.config = config;
@@ -28,11 +30,24 @@ public class SearchEngine {
                 System.err.println("Invalid exclude pattern: " + pattern);
             }
         }
-        this.forkJoinPool = new ForkJoinPool();
+    }
+
+    public void setSearchTask(Task<?> searchTask) {
+        this.searchTask = searchTask;
+    }
+
+    public void cancelSearch() {
+        if (searchTask != null && !searchTask.isDone()) {
+            searchTask.cancel(true);
+        }
+        if (forkJoinPool != null && !forkJoinPool.isShutdown()) {
+            forkJoinPool.shutdownNow();
+        }
     }
 
     public void searchFilenameRealtime(String query, String extension, String customFolder, SearchFilters filters,
                                        int maxResults, Consumer<FileResult> resultCallback) {
+        forkJoinPool = new ForkJoinPool();
         Set<String> searchRoots = getSearchRoots(customFolder);
         String pattern = buildPattern(query);
         Pattern regex = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
@@ -44,6 +59,7 @@ public class SearchEngine {
 
     public void searchContentRealtime(String text, String extension, String customFolder,
                                       SearchFilters filters, int maxResults, Consumer<FileResult> resultCallback) {
+        forkJoinPool = new ForkJoinPool();
         Set<String> searchRoots = getSearchRoots(customFolder);
         Pattern contentPattern = Pattern.compile(Pattern.quote(text), Pattern.CASE_INSENSITIVE);
         Collection<FileResult> allResults = new ConcurrentLinkedQueue<>();
@@ -76,13 +92,18 @@ public class SearchEngine {
 
         @Override
         protected void compute() {
+            if (Thread.currentThread().isInterrupted() || isSearchCancelled()) {
+                return;
+            }
             List<SearchTask> tasks = new ArrayList<>();
             for (String root : roots) {
                 File rootDir = new File(root);
                 if (rootDir.exists() && rootDir.isDirectory()) {
                     try (DirectoryStream<Path> stream = Files.newDirectoryStream(rootDir.toPath())) {
                         for (Path path : stream) {
-                            if (allResults.size() >= maxResults) return;
+                            if (Thread.currentThread().isInterrupted() || isSearchCancelled() || allResults.size() >= maxResults) {
+                                return;
+                            }
 
                             if (Files.isDirectory(path)) {
                                 if (!shouldExclude(path)) {
@@ -94,7 +115,9 @@ public class SearchEngine {
                             }
                         }
                     } catch (IOException e) {
-                        System.err.println("Error reading directory: " + root);
+                        if (!isSearchCancelled()) {
+                            System.err.println("Error reading directory: " + root);
+                        }
                     }
                 }
             }
@@ -102,7 +125,9 @@ public class SearchEngine {
         }
 
         private void processFile(Path file) {
-            if (allResults.size() >= maxResults) return;
+            if (Thread.currentThread().isInterrupted() || isSearchCancelled() || allResults.size() >= maxResults) {
+                return;
+            }
 
             if (shouldExclude(file)) return;
 
@@ -123,6 +148,10 @@ public class SearchEngine {
             }
         }
 
+        public boolean isSearchCancelled() {
+            return searchTask != null && searchTask.isCancelled();
+        }
+
         private void addResult(Path file) {
             try {
                 FileResult result = new FileResult(file.toString());
@@ -131,20 +160,11 @@ public class SearchEngine {
                     resultCallback.accept(result);
                 }
             } catch (Exception e) {
-                System.err.println("Error processing " + file + ": " + e.getMessage());
+                if (!isSearchCancelled()) {
+                    System.err.println("Error processing " + file + ": " + e.getMessage());
+                }
             }
         }
-    }
-
-    private boolean searchInFile(Path file, Pattern pattern) {
-        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
-            if (channel.size() == 0) return false;
-            java.nio.MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            return pattern.matcher(java.nio.charset.StandardCharsets.UTF_8.decode(buffer)).find();
-        } catch (Exception e) {
-            // File not readable or binary
-        }
-        return false;
     }
 
     private boolean isTextFile(Path file) {
@@ -169,6 +189,16 @@ public class SearchEngine {
         }
     }
 
+    private boolean searchInFile(Path file, Pattern pattern) {
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            if (channel.size() == 0) return false;
+            java.nio.MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+            return pattern.matcher(java.nio.charset.StandardCharsets.UTF_8.decode(buffer)).find();
+        } catch (Exception e) {
+            // File not readable or binary
+        }
+        return false;
+    }
     private boolean shouldExclude(Path path) {
         for (PathMatcher matcher : excludeMatchers) {
             if (matcher.matches(path)) {
