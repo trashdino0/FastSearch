@@ -19,29 +19,51 @@ import java.util.Optional;
 
 public class MainWindowController {
 
-    @FXML private TextField searchField;
-    @FXML private ComboBox<String> searchModeCombo;
-    @FXML private TextField extensionField;
-    @FXML private TableView<FileResult> resultsTable;
-    @FXML private Label statusLabel;
-    @FXML private Label timerLabel;
-    @FXML private ProgressIndicator progressIndicator;
-    @FXML private Button searchButton;
-    @FXML private Button stopButton;
-    @FXML private TextField minSizeField;
-    @FXML private TextField maxSizeField;
-    @FXML private DatePicker modifiedAfterPicker;
-    @FXML private CheckBox todayOnlyCheck;
-    @FXML private Spinner<Integer> maxResultsSpinner;
-    @FXML private TextField searchFolderField;
-    @FXML private Button browseFolderButton;
-    @FXML private Button clearFolderButton;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private ComboBox<String> searchModeCombo;
+    @FXML
+    private TextField extensionField;
+    @FXML
+    private TableView<FileResult> resultsTable;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Label timerLabel;
+    @FXML
+    private ProgressIndicator progressIndicator;
+    @FXML
+    private Button searchButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private TextField minSizeField;
+    @FXML
+    private TextField maxSizeField;
+    @FXML
+    private DatePicker modifiedAfterPicker;
+    @FXML
+    private CheckBox todayOnlyCheck;
+    @FXML
+    private Spinner<Integer> maxResultsSpinner;
+    @FXML
+    private TextField searchFolderField;
+    @FXML
+    private Button browseFolderButton;
+    @FXML
+    private Button clearFolderButton;
 
-    @FXML private TableColumn<FileResult, String> nameCol;
-    @FXML private TableColumn<FileResult, String> pathCol;
-    @FXML private TableColumn<FileResult, String> sizeCol;
-    @FXML private TableColumn<FileResult, String> typeCol;
-    @FXML private TableColumn<FileResult, String> modifiedCol;
+    @FXML
+    private TableColumn<FileResult, String> nameCol;
+    @FXML
+    private TableColumn<FileResult, String> pathCol;
+    @FXML
+    private TableColumn<FileResult, String> sizeCol;
+    @FXML
+    private TableColumn<FileResult, String> typeCol;
+    @FXML
+    private TableColumn<FileResult, String> modifiedCol;
 
     private long searchStartTime;
     private javafx.animation.Timeline timerTimeline;
@@ -96,7 +118,7 @@ public class MainWindowController {
         if (searchTask != null && searchTask.isRunning()) {
             searchTask.cancel(true);
         }
-        
+
         String query = searchField.getText().trim();
         if (query.isEmpty()) {
             showAlert("Error", "Please enter a search query", Alert.AlertType.ERROR);
@@ -195,7 +217,7 @@ public class MainWindowController {
         }
         setSearching(false);
     }
-    
+
     @FXML
     private void clearResults() {
         searchResults.clear();
@@ -220,7 +242,7 @@ public class MainWindowController {
             updateStatus("Search folder set to: " + selectedDirectory.getName());
         }
     }
-    
+
     @FXML
     private void clearSearchFolder() {
         searchFolderField.clear();

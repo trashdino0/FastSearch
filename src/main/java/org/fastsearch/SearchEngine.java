@@ -1,12 +1,11 @@
 package org.fastsearch;
 
 import javafx.concurrent.Task;
-import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
@@ -66,6 +65,94 @@ public class SearchEngine {
 
         SearchTask task = new SearchTask(searchRoots, contentPattern, extension, filters, maxResults, resultCallback, allResults, false);
         forkJoinPool.invoke(task);
+    }
+
+    private boolean isTextFile(Path file) {
+        String name = file.getFileName().toString().toLowerCase();
+        String[] textExtensions = {
+                ".txt", ".log", ".md", ".py", ".java", ".js", ".ts", ".jsx", ".tsx",
+                ".html", ".css", ".xml", ".json", ".yaml", ".yml", ".ini", ".conf",
+                ".c", ".cpp", ".h", ".hpp", ".cs", ".go", ".rs", ".rb", ".php",
+                ".sh", ".bat", ".sql", ".properties", ".gradle", ".maven"
+        };
+
+        for (String ext : textExtensions) {
+            if (name.endsWith(ext)) {
+                return true;
+            }
+        }
+
+        try {
+            return Files.size(file) < 10 * 1024 * 1024;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private boolean searchInFile(Path file, Pattern pattern) {
+        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+            if (channel.size() == 0) return false;
+            java.nio.MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+            return pattern.matcher(java.nio.charset.StandardCharsets.UTF_8.decode(buffer)).find();
+        } catch (Exception e) {
+            // File not readable or binary
+        }
+        return false;
+    }
+
+    private boolean shouldExclude(Path path) {
+        for (PathMatcher matcher : excludeMatchers) {
+            if (matcher.matches(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String buildPattern(String query) {
+        if (query.contains("*") || query.contains("?")) {
+            return query.replace(".", "\\.")
+                    .replace("*", ".*")
+                    .replace("?", ".");
+        }
+        return ".*" + Pattern.quote(query) + ".*";
+    }
+
+    private Set<String> getSearchRoots(String customFolder) {
+        Set<String> roots = new LinkedHashSet<>();
+
+        if (customFolder != null && !customFolder.isEmpty()) {
+            File customDir = new File(customFolder);
+            if (customDir.exists() && customDir.isDirectory()) {
+                roots.add(customDir.getAbsolutePath());
+                return roots;
+            }
+        }
+
+        String userHome = System.getProperty("user.home");
+        String[] commonFolders = {
+                "Desktop", "Documents", "Downloads", "Pictures", "Videos", "Music"
+        };
+
+        for (String folder : commonFolders) {
+            File dir = new File(userHome, folder);
+            if (dir.exists() && dir.isDirectory()) {
+                roots.add(dir.getAbsolutePath());
+            }
+        }
+
+        for (String extra : config.getExtraFolders()) {
+            File dir = new File(extra);
+            if (dir.exists() && dir.isDirectory()) {
+                roots.add(dir.getAbsolutePath());
+            }
+        }
+
+        if (roots.isEmpty()) {
+            roots.add(userHome);
+        }
+
+        return roots;
     }
 
     private class SearchTask extends RecursiveAction {
@@ -165,92 +252,5 @@ public class SearchEngine {
                 }
             }
         }
-    }
-
-    private boolean isTextFile(Path file) {
-        String name = file.getFileName().toString().toLowerCase();
-        String[] textExtensions = {
-                ".txt", ".log", ".md", ".py", ".java", ".js", ".ts", ".jsx", ".tsx",
-                ".html", ".css", ".xml", ".json", ".yaml", ".yml", ".ini", ".conf",
-                ".c", ".cpp", ".h", ".hpp", ".cs", ".go", ".rs", ".rb", ".php",
-                ".sh", ".bat", ".sql", ".properties", ".gradle", ".maven"
-        };
-
-        for (String ext : textExtensions) {
-            if (name.endsWith(ext)) {
-                return true;
-            }
-        }
-
-        try {
-            return Files.size(file) < 10 * 1024 * 1024;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    private boolean searchInFile(Path file, Pattern pattern) {
-        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
-            if (channel.size() == 0) return false;
-            java.nio.MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            return pattern.matcher(java.nio.charset.StandardCharsets.UTF_8.decode(buffer)).find();
-        } catch (Exception e) {
-            // File not readable or binary
-        }
-        return false;
-    }
-    private boolean shouldExclude(Path path) {
-        for (PathMatcher matcher : excludeMatchers) {
-            if (matcher.matches(path)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String buildPattern(String query) {
-        if (query.contains("*") || query.contains("?")) {
-            return query.replace(".", "\\.")
-                    .replace("*", ".*")
-                    .replace("?", ".");
-        }
-        return ".*" + Pattern.quote(query) + ".*";
-    }
-
-    private Set<String> getSearchRoots(String customFolder) {
-        Set<String> roots = new LinkedHashSet<>();
-
-        if (customFolder != null && !customFolder.isEmpty()) {
-            File customDir = new File(customFolder);
-            if (customDir.exists() && customDir.isDirectory()) {
-                roots.add(customDir.getAbsolutePath());
-                return roots;
-            }
-        }
-
-        String userHome = System.getProperty("user.home");
-        String[] commonFolders = {
-                "Desktop", "Documents", "Downloads", "Pictures", "Videos", "Music"
-        };
-
-        for (String folder : commonFolders) {
-            File dir = new File(userHome, folder);
-            if (dir.exists() && dir.isDirectory()) {
-                roots.add(dir.getAbsolutePath());
-            }
-        }
-
-        for (String extra : config.getExtraFolders()) {
-            File dir = new File(extra);
-            if (dir.exists() && dir.isDirectory()) {
-                roots.add(dir.getAbsolutePath());
-            }
-        }
-
-        if (roots.isEmpty()) {
-            roots.add(userHome);
-        }
-
-        return roots;
     }
 }
