@@ -8,14 +8,16 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * About Dialog - Shows application information
  */
 public class AboutDialog extends Dialog<Void> {
-    private final SearchConfig config;
+    private static final Logger LOGGER = Logger.getLogger(AboutDialog.class.getName());
 
     public AboutDialog(SearchConfig config) {
-        this.config = config;
         setTitle("About Fast Search");
         setHeaderText("Fast File & Content Search Tool");
 
@@ -53,11 +55,15 @@ public class AboutDialog extends Dialog<Void> {
             stylesheet = "styles-light.css";
         }
         try {
-            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
-            getDialogPane().getStylesheets().add(css);
+            java.net.URL resource = FastSearchApp.class.getResource(stylesheet);
+            if (resource != null) {
+                String css = resource.toExternalForm();
+                getDialogPane().getStylesheets().add(css);
+            } else {
+                LOGGER.log(Level.WARNING, "Stylesheet not found: {0}", stylesheet);
+            }
         } catch (Exception e) {
-            System.err.println("Could not load stylesheet for AboutDialog: " + stylesheet);
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Could not load stylesheet for AboutDialog: " + stylesheet, e);
         }
     }
 

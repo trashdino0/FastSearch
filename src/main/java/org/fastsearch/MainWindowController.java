@@ -16,8 +16,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainWindowController {
+    private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
+
 
     @FXML
     private TextField searchField;
@@ -179,7 +183,7 @@ public class MainWindowController {
                     }
                 } catch (Exception e) {
                     if (!isCancelled()) {
-                        e.printStackTrace();
+                        logger.log(Level.SEVERE, "Error during search operation", e);
                         throw e;
                     }
                 }
@@ -207,7 +211,7 @@ public class MainWindowController {
                 updateStatus("Search failed");
                 Throwable ex = getException();
                 if (ex != null) {
-                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Search failed", ex);
                     showAlert("Error", "Search failed: " + ex.getMessage(), Alert.AlertType.ERROR);
                 }
             }
@@ -360,7 +364,8 @@ public class MainWindowController {
         confirm.setHeaderText("Delete file?");
         confirm.setContentText(selected.getName());
 
-        if (confirm.showAndWait().get() == ButtonType.OK) {
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 Files.delete(Paths.get(selected.getPath()));
                 searchResults.remove(selected);
@@ -418,7 +423,7 @@ public class MainWindowController {
     @FXML
     private void showHistoryDialog() {
         HistoryDialog dialog = new HistoryDialog(config);
-        Optional<SearchHistory> result = dialog.showAndWait();
+        Optional<SearchConfig.SearchHistory> result = dialog.showAndWait();
         result.ifPresent(history -> {
             searchModeCombo.setValue(history.getMode());
             searchField.setText(history.getQuery());

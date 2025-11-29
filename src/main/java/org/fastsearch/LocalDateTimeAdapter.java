@@ -1,6 +1,9 @@
 package org.fastsearch;
 
 import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -14,7 +17,7 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     @Override
-    public void write(com.google.gson.stream.JsonWriter out, LocalDateTime value) throws IOException {
+    public void write(JsonWriter out, LocalDateTime value) throws IOException {
         if (value == null) {
             out.nullValue();
         } else {
@@ -23,8 +26,8 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
     }
 
     @Override
-    public LocalDateTime read(com.google.gson.stream.JsonReader in) throws IOException {
-        if (in.peek() == com.google.gson.stream.JsonToken.NULL) {
+    public LocalDateTime read(JsonReader in) throws IOException {
+        if (in.peek() == JsonToken.NULL) {
             in.nextNull();
             return null;
         }

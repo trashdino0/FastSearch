@@ -6,15 +6,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Search History Dialog
  */
-class HistoryDialog extends Dialog<SearchHistory> {
-    private final ListView<SearchHistory> historyList;
-    private final SearchConfig config;
+public class HistoryDialog extends Dialog<SearchConfig.SearchHistory> {
+    private static final Logger logger = Logger.getLogger(HistoryDialog.class.getName());
+    private final ListView<SearchConfig.SearchHistory> historyList;
 
     public HistoryDialog(SearchConfig config) {
-        this.config = config;
         setTitle("Search History");
         setHeaderText("Recent Searches (double-click to re-run)");
 
@@ -26,7 +29,7 @@ class HistoryDialog extends Dialog<SearchHistory> {
         historyList.setItems(FXCollections.observableArrayList(config.getHistory()));
         historyList.setCellFactory(lv -> new ListCell<>() {
             @Override
-            protected void updateItem(SearchHistory item, boolean empty) {
+            protected void updateItem(SearchConfig.SearchHistory item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
@@ -39,7 +42,7 @@ class HistoryDialog extends Dialog<SearchHistory> {
         // Double-click to select
         historyList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
-                SearchHistory selected = historyList.getSelectionModel().getSelectedItem();
+                SearchConfig.SearchHistory selected = historyList.getSelectionModel().getSelectedItem();
                 if (selected != null) {
                     setResult(selected);
                     close();
@@ -63,11 +66,15 @@ class HistoryDialog extends Dialog<SearchHistory> {
             stylesheet = "styles-light.css";
         }
         try {
-            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
-            getDialogPane().getStylesheets().add(css);
+            URL resource = FastSearchApp.class.getResource(stylesheet);
+            if (resource != null) {
+                String css = resource.toExternalForm();
+                getDialogPane().getStylesheets().add(css);
+            } else {
+                logger.log(Level.WARNING, "Could not find stylesheet: {0}", stylesheet);
+            }
         } catch (Exception e) {
-            System.err.println("Could not load stylesheet for HistoryDialog: " + stylesheet);
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error loading stylesheet: " + stylesheet, e);
         }
 
         setResultConverter(dialogButton -> {

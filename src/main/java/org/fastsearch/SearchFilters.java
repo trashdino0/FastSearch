@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 // ============================================
 // SEARCH FILTERS
 // ============================================
-class SearchFilters {
+public class SearchFilters {
     private Long minSize;
     private Long maxSize;
     private LocalDateTime modifiedAfter;

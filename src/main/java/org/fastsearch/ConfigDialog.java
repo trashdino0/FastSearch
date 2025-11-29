@@ -10,6 +10,8 @@ import javafx.stage.DirectoryChooser;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Configuration Dialog
@@ -101,11 +103,17 @@ class ConfigDialog extends Dialog<Void> {
             stylesheet = "styles-light.css";
         }
         try {
-            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
-            getDialogPane().getStylesheets().add(css);
+            java.net.URL resource = FastSearchApp.class.getResource(stylesheet);
+            if (resource != null) {
+                String css = resource.toExternalForm();
+                getDialogPane().getStylesheets().add(css);
+            } else {
+                Logger.getLogger(ConfigDialog.class.getName())
+                        .log(Level.WARNING, "Could not find stylesheet: {0}", stylesheet);
+            }
         } catch (Exception e) {
-            System.err.println("Could not load stylesheet for ConfigDialog: " + stylesheet);
-            e.printStackTrace();
+            Logger.getLogger(ConfigDialog.class.getName())
+                    .log(Level.SEVERE, "Error loading stylesheet: " + stylesheet, e);
         }
 
         // Save on OK

@@ -7,13 +7,44 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FastSearchApp extends Application {
+    private static final Logger logger = Logger.getLogger(FastSearchApp.class.getName());
 
     private MainWindowController controller;
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public static void applyTheme(Scene scene, String theme) {
+        logger.log(Level.FINE, "Applying theme: {0}", theme);
+        String stylesheet = "styles-dark.css";
+        if ("Light".equalsIgnoreCase(theme)) {
+            stylesheet = "styles-light.css";
+        }
+        logger.log(Level.FINE, "Loading stylesheet: {0}", stylesheet);
+
+        try {
+            java.net.URL resource = FastSearchApp.class.getResource(stylesheet);
+            if (resource == null) {
+                logger.log(Level.WARNING, "Could not find stylesheet: {0}", stylesheet);
+                return;
+            }
+            String css = resource.toExternalForm();
+            if (scene != null) {
+                logger.fine("Scene is not null. Clearing and adding stylesheet.");
+                scene.getStylesheets().clear();
+                scene.getStylesheets().add(css);
+                logger.fine("Stylesheet applied successfully");
+            } else {
+                logger.warning("Cannot apply stylesheet: scene is null");
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error loading stylesheet: " + stylesheet, e);
+        }
     }
 
     @Override
@@ -33,29 +64,6 @@ public class FastSearchApp extends Application {
     public void stop() {
         if (controller != null) {
             controller.saveConfig();
-        }
-    }
-
-    public static void applyTheme(Scene scene, String theme) {
-        System.out.println("FastSearchApp.applyTheme called. Theme: " + theme);
-        String stylesheet = "styles-dark.css";
-        if ("Light".equalsIgnoreCase(theme)) {
-            stylesheet = "styles-light.css";
-        }
-        System.out.println("FastSearchApp.applyTheme: Loading stylesheet: " + stylesheet);
-        
-        try {
-            String css = FastSearchApp.class.getResource(stylesheet).toExternalForm();
-            if (scene != null) {
-                System.out.println("FastSearchApp.applyTheme: Scene is not null. Clearing and adding stylesheet.");
-                scene.getStylesheets().clear();
-                scene.getStylesheets().add(css);
-            } else {
-                System.out.println("FastSearchApp.applyTheme: Scene is null. Cannot apply stylesheet.");
-            }
-        } catch (Exception e) {
-            System.err.println("FastSearchApp.applyTheme: Could not load stylesheet: " + stylesheet);
-            e.printStackTrace();
         }
     }
 }

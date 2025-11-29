@@ -5,15 +5,15 @@ import com.google.gson.GsonBuilder;
 
 import java.io.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 // ============================================
 // SEARCH CONFIG
 // ============================================
-class SearchConfig {
+public class SearchConfig {
     private static final String CONFIG_FILE = System.getProperty("user.home") + "/.fastsearch.json";
 
     private int maxResults = 1000;
@@ -51,8 +51,8 @@ class SearchConfig {
     public void save() {
         try (Writer writer = new FileWriter(CONFIG_FILE)) {
             Gson gson = new GsonBuilder()
-                    .setPrettyPrinting()
                     .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                    .setPrettyPrinting()
                     .create();
             gson.toJson(this, writer);
         } catch (Exception e) {
@@ -107,5 +107,51 @@ class SearchConfig {
 
     public void setTheme(String theme) {
         this.theme = theme;
+    }
+
+    // ============================================
+    // SEARCH HISTORY
+    // ============================================
+    public static class SearchHistory {
+        private final String mode;
+        private final String query;
+        private final String extension;
+        private final LocalDateTime timestamp;
+        private final int resultsCount;
+
+        public SearchHistory(String mode, String query, String extension, int resultsCount) {
+            this.mode = mode;
+            this.query = query;
+            this.extension = extension;
+            this.timestamp = LocalDateTime.now();
+            this.resultsCount = resultsCount;
+        }
+
+        public String getDisplayText() {
+            String ext = extension != null && !extension.isEmpty() ? " (." + extension + ")" : "";
+            return String.format("[%s] %s: %s%s - %d results",
+                    timestamp.format(DateTimeFormatter.ofPattern("MM-dd HH:mm")),
+                    mode, query, ext, resultsCount);
+        }
+
+        public String getMode() {
+            return mode;
+        }
+
+        public String getQuery() {
+            return query;
+        }
+
+        public String getExtension() {
+            return extension;
+        }
+
+        public LocalDateTime getTimestamp() {
+            return timestamp;
+        }
+
+        public int getResultsCount() {
+            return resultsCount;
+        }
     }
 }
