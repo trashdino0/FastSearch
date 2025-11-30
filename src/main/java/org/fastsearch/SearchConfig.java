@@ -21,8 +21,15 @@ public class SearchConfig {
             "node_modules", ".git", "__pycache__", "*.tmp"
     ));
     private List<String> extraFolders = new ArrayList<>();
+    private List<String> textExtensions = new ArrayList<>(Arrays.asList(
+            ".txt", ".log", ".md", ".py", ".java", ".js", ".ts", ".jsx", ".tsx",
+            ".html", ".css", ".xml", ".json", ".yaml", ".yml", ".ini", ".conf",
+            ".c", ".cpp", ".h", ".hpp", ".cs", ".go", ".rs", ".rb", ".php",
+            ".sh", ".bat", ".sql", ".properties", ".gradle", ".maven"
+    ));
     private List<SearchHistory> history = new ArrayList<>();
     private String theme = "Light";
+    private int statusPathDepth = 4;
 
     public static SearchConfig load() {
         File configFile = new File(CONFIG_FILE);
@@ -93,6 +100,14 @@ public class SearchConfig {
         this.extraFolders = extraFolders;
     }
 
+    public List<String> getTextExtensions() {
+        return textExtensions;
+    }
+
+    public void setTextExtensions(List<String> textExtensions) {
+        this.textExtensions = textExtensions;
+    }
+
     public List<SearchHistory> getHistory() {
         return history;
     }
@@ -107,6 +122,14 @@ public class SearchConfig {
 
     public void setTheme(String theme) {
         this.theme = theme;
+    }
+
+    public int getStatusPathDepth() {
+        return statusPathDepth;
+    }
+
+    public void setStatusPathDepth(int statusPathDepth) {
+        this.statusPathDepth = statusPathDepth;
     }
 
     // ============================================

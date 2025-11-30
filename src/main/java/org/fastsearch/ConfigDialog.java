@@ -20,8 +20,10 @@ class ConfigDialog extends Dialog<Void> {
     private final SearchConfig config;
     private final ComboBox<String> themeCombo;
     private final Spinner<Integer> maxResultsSpinner;
+    private final Spinner<Integer> statusPathDepthSpinner;
     private final ListView<String> excludeList;
     private final ListView<String> foldersList;
+    private final ListView<String> textExtensionsList;
 
     public ConfigDialog(SearchConfig config) {
         this.config = config;
@@ -55,6 +57,16 @@ class ConfigDialog extends Dialog<Void> {
         maxResultsSpinner.setPrefWidth(150);
         maxResultsBox.getChildren().addAll(maxLabel, maxResultsSpinner);
 
+        // Status Path Depth
+        HBox statusPathDepthBox = new HBox(10);
+        statusPathDepthBox.setAlignment(Pos.CENTER_LEFT);
+        Label statusPathDepthLabel = new Label("Status Path Depth:");
+        statusPathDepthLabel.setPrefWidth(120);
+        statusPathDepthSpinner = new Spinner<>(1, 10, config.getStatusPathDepth(), 1);
+        statusPathDepthSpinner.setEditable(true);
+        statusPathDepthSpinner.setPrefWidth(150);
+        statusPathDepthBox.getChildren().addAll(statusPathDepthLabel, statusPathDepthSpinner);
+
         // Exclude Patterns
         Label excludeLabel = new Label("Exclude Patterns:");
         excludeLabel.setStyle("-fx-font-weight: bold;");
@@ -85,13 +97,31 @@ class ConfigDialog extends Dialog<Void> {
         removeFolderBtn.setOnAction(e -> removeFolder());
         foldersButtons.getChildren().addAll(addFolderBtn, removeFolderBtn);
 
+        // Text Extensions
+        Label textExtensionsLabel = new Label("Text File Extensions:");
+        textExtensionsLabel.setStyle("-fx-font-weight: bold;");
+
+        textExtensionsList = new ListView<>();
+        textExtensionsList.setItems(FXCollections.observableArrayList(config.getTextExtensions()));
+        textExtensionsList.setPrefHeight(100);
+
+        HBox textExtensionsButtons = new HBox(5);
+        Button addTextExtensionBtn = new Button("Add");
+        addTextExtensionBtn.setOnAction(e -> addTextExtension());
+        Button removeTextExtensionBtn = new Button("Remove");
+        removeTextExtensionBtn.setOnAction(e -> removeTextExtension());
+        textExtensionsButtons.getChildren().addAll(addTextExtensionBtn, removeTextExtensionBtn);
+
         content.getChildren().addAll(
                 themeBox,
                 maxResultsBox,
+                statusPathDepthBox,
                 new Separator(),
                 excludeLabel, excludeList, excludeButtons,
                 new Separator(),
-                foldersLabel, foldersList, foldersButtons
+                foldersLabel, foldersList, foldersButtons,
+                new Separator(),
+                textExtensionsLabel, textExtensionsList, textExtensionsButtons
         );
 
         getDialogPane().setContent(content);
@@ -166,11 +196,37 @@ class ConfigDialog extends Dialog<Void> {
         }
     }
 
+    private void addTextExtension() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Text Extension");
+        dialog.setHeaderText("Enter file extension (e.g., .txt)");
+        dialog.setContentText("Extension:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(extension -> {
+            if (!extension.trim().isEmpty() && !extension.startsWith(".")) {
+                extension = "." + extension.trim();
+            }
+            if (!extension.trim().isEmpty() && !textExtensionsList.getItems().contains(extension)) {
+                textExtensionsList.getItems().add(extension);
+            }
+        });
+    }
+
+    private void removeTextExtension() {
+        String selected = textExtensionsList.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            textExtensionsList.getItems().remove(selected);
+        }
+    }
+
     private void saveConfig() {
         config.setTheme(themeCombo.getValue());
         config.setMaxResults(maxResultsSpinner.getValue());
+        config.setStatusPathDepth(statusPathDepthSpinner.getValue());
         config.setExcludePatterns(new java.util.ArrayList<>(excludeList.getItems()));
         config.setExtraFolders(new java.util.ArrayList<>(foldersList.getItems()));
+        config.setTextExtensions(new java.util.ArrayList<>(textExtensionsList.getItems()));
         config.save();
     }
 }

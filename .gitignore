@@ -9,6 +9,8 @@ out/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
+
+gemini.md
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/

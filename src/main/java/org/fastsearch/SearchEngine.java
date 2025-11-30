@@ -1,10 +1,11 @@
 package org.fastsearch;
 
-import javafx.concurrent.Task;
-
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -12,6 +13,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import javafx.concurrent.Task;
 
 public class SearchEngine {
     private final SearchConfig config;
@@ -45,20 +47,20 @@ public class SearchEngine {
     }
 
     public void searchFilenameRealtime(String query, String extension, String customFolder, SearchFilters filters,
-                                       int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback) {
+                                       int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback, Consumer<String> statusCallback) {
         forkJoinPool = new ForkJoinPool();
         Set<String> searchRoots = getSearchRoots(customFolder);
         String pattern = buildPattern(query);
         Pattern regex = Pattern.compile(pattern, isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
         Collection<FileResult> allResults = new ConcurrentLinkedQueue<>();
 
-        SearchTask task = new SearchTask(searchRoots, regex, extension, filters, maxResults, resultCallback, allResults, true);
+        SearchTask task = new SearchTask(searchRoots, regex, extension, filters, maxResults, resultCallback, allResults, true, statusCallback);
         forkJoinPool.invoke(task);
     }
 
     public void searchContentRealtime(String text, String extension, String customFolder,
                                       SearchFilters filters, int maxResults, boolean isCaseSensitive,
-                                      boolean isRegex, Consumer<FileResult> resultCallback) {
+                                      boolean isRegex, Consumer<FileResult> resultCallback, Consumer<String> statusCallback) {
         forkJoinPool = new ForkJoinPool();
         Set<String> searchRoots = getSearchRoots(customFolder);
         String patternString = isRegex ? text : Pattern.quote(text);
@@ -66,43 +68,50 @@ public class SearchEngine {
         Pattern contentPattern = Pattern.compile(patternString, flags);
         Collection<FileResult> allResults = new ConcurrentLinkedQueue<>();
 
-        SearchTask task = new SearchTask(searchRoots, contentPattern, extension, filters, maxResults, resultCallback, allResults, false);
+        SearchTask task = new SearchTask(searchRoots, contentPattern, extension, filters, maxResults, resultCallback, allResults, false, statusCallback);
         forkJoinPool.invoke(task);
     }
 
     private boolean isTextFile(Path file) {
         String name = file.getFileName().toString().toLowerCase();
-        String[] textExtensions = {
-                ".txt", ".log", ".md", ".py", ".java", ".js", ".ts", ".jsx", ".tsx",
-                ".html", ".css", ".xml", ".json", ".yaml", ".yml", ".ini", ".conf",
-                ".c", ".cpp", ".h", ".hpp", ".cs", ".go", ".rs", ".rb", ".php",
-                ".sh", ".bat", ".sql", ".properties", ".gradle", ".maven"
-        };
 
-        for (String ext : textExtensions) {
-            if (name.endsWith(ext)) {
+        for (String ext : config.getTextExtensions()) {
+            if (name.endsWith(ext.toLowerCase())) {
                 return true;
             }
         }
 
-        try {
-            return Files.size(file) < 10 * 1024 * 1024;
+        // Content sniffing: check for NUL bytes in the first KB
+        byte[] buffer = new byte[1024];
+        try (InputStream is = Files.newInputStream(file)) {
+            int bytesRead = is.read(buffer);
+            for (int i = 0; i < bytesRead; i++) {
+                if (buffer[i] == 0) { // NUL byte indicates binary
+                    return false;
+                }
+            }
         } catch (IOException e) {
+            // Log this, but assume it's not a text file if we can't read it
+            System.err.println("Error sniffing file content for " + file + ": " + e.getMessage());
             return false;
         }
+
+        return true;
     }
 
     private boolean searchInFile(Path file, Pattern pattern) {
-        try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
-            if (channel.size() == 0) return false;
-            java.nio.MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            return pattern.matcher(java.nio.charset.StandardCharsets.UTF_8.decode(buffer)).find();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (pattern.matcher(line).find()) {
+                    return true;
+                }
+            }
         } catch (Exception e) {
-            // File not readable or binary
+            // File not readable, binary, or other issue
         }
         return false;
     }
-
     private boolean shouldExclude(Path path) {
         for (PathMatcher matcher : excludeMatchers) {
             if (matcher.matches(path)) {
@@ -167,9 +176,10 @@ public class SearchEngine {
         private final Consumer<FileResult> resultCallback;
         private final Collection<FileResult> allResults;
         private final boolean isFilenameSearch;
+        private final Consumer<String> statusCallback;
 
         SearchTask(Collection<String> roots, Pattern pattern, String extension, SearchFilters filters, int maxResults,
-                   Consumer<FileResult> resultCallback, Collection<FileResult> allResults, boolean isFilenameSearch) {
+                   Consumer<FileResult> resultCallback, Collection<FileResult> allResults, boolean isFilenameSearch, Consumer<String> statusCallback) {
             this.roots = roots;
             this.pattern = pattern;
             this.extension = extension;
@@ -178,6 +188,7 @@ public class SearchEngine {
             this.resultCallback = resultCallback;
             this.allResults = allResults;
             this.isFilenameSearch = isFilenameSearch;
+            this.statusCallback = statusCallback;
         }
 
         @Override
@@ -187,6 +198,9 @@ public class SearchEngine {
             }
             List<SearchTask> tasks = new ArrayList<>();
             for (String root : roots) {
+                if (statusCallback != null) {
+                    statusCallback.accept("Searching in: " + root);
+                }
                 File rootDir = new File(root);
                 if (rootDir.exists() && rootDir.isDirectory()) {
                     try (DirectoryStream<Path> stream = Files.newDirectoryStream(rootDir.toPath())) {
@@ -195,9 +209,9 @@ public class SearchEngine {
                                 return;
                             }
 
-                            if (Files.isDirectory(path)) {
+                            if (Files.isDirectory(path) && !Files.isSymbolicLink(path)) {
                                 if (!shouldExclude(path)) {
-                                    SearchTask task = new SearchTask(Collections.singleton(path.toString()), pattern, extension, filters, maxResults, resultCallback, allResults, isFilenameSearch);
+                                    SearchTask task = new SearchTask(Collections.singleton(path.toString()), pattern, extension, filters, maxResults, resultCallback, allResults, isFilenameSearch, statusCallback);
                                     tasks.add(task);
                                 }
                             } else {

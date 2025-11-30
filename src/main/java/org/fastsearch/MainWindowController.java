@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.function.Consumer;
+import java.util.StringJoiner;
 
 public class MainWindowController {
     private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
@@ -101,7 +103,44 @@ public class MainWindowController {
         typeCol.setCellValueFactory(new PropertyValueFactory<>("type"));
         modifiedCol.setCellValueFactory(new PropertyValueFactory<>("modifiedFormatted"));
 
+        // Enable sorting
+        nameCol.setSortable(true);
+        pathCol.setSortable(true);
+        typeCol.setSortable(true);
+
+        // Custom comparators for numeric/date sorting
+        sizeCol.setSortable(true);
+        sizeCol.setComparator((s1, s2) -> {
+            FileResult fr1 = sizeCol.getTableView().getItems().stream()
+                    .filter(fr -> fr.getSizeFormatted().equals(s1))
+                    .findFirst().orElse(null);
+            FileResult fr2 = sizeCol.getTableView().getItems().stream()
+                    .filter(fr -> fr.getSizeFormatted().equals(s2))
+                    .findFirst().orElse(null);
+            if (fr1 != null && fr2 != null) {
+                return Long.compare(fr1.getSize(), fr2.getSize());
+            }
+            return 0; // Or handle nulls as appropriate
+        });
+
+        modifiedCol.setSortable(true);
+        modifiedCol.setComparator((s1, s2) -> {
+            FileResult fr1 = modifiedCol.getTableView().getItems().stream()
+                    .filter(fr -> fr.getModifiedFormatted().equals(s1))
+                    .findFirst().orElse(null);
+            FileResult fr2 = modifiedCol.getTableView().getItems().stream()
+                    .filter(fr -> fr.getModifiedFormatted().equals(s2))
+                    .findFirst().orElse(null);
+            if (fr1 != null && fr2 != null) {
+                return fr1.getModified().compareTo(fr2.getModified());
+            }
+            return 0; // Or handle nulls as appropriate
+        });
+
         resultsTable.setItems(searchResults);
+
+        // Allow multiple column sorting
+        resultsTable.getSortOrder().addAll(nameCol); // Default sort by name
 
         todayOnlyCheck.setOnAction(e -> {
             if (todayOnlyCheck.isSelected()) {
@@ -172,14 +211,20 @@ public class MainWindowController {
             @Override
             protected Void call() {
                 updateMessage("Searching...");
+                Consumer<String> statusCallback = (status) -> {
+                    String truncatedPath = truncatePath(status, config.getStatusPathDepth());
+                    Platform.runLater(() -> {
+                        updateStatus(truncatedPath);
+                    });
+                };
 
                 try {
                     if (mode.equals("Filename")) {
                         searchEngine.searchFilenameRealtime(query, extension, customFolder, filters, maxResults,
-                                isCaseSensitive, result -> addResultToTable(result));
+                                isCaseSensitive, result -> addResultToTable(result), statusCallback);
                     } else {
                         searchEngine.searchContentRealtime(query, extension, customFolder, filters, maxResults,
-                                isCaseSensitive, isRegex, result -> addResultToTable(result));
+                                isCaseSensitive, isRegex, result -> addResultToTable(result), statusCallback);
                     }
                 } catch (Exception e) {
                     if (!isCancelled()) {
@@ -228,6 +273,20 @@ public class MainWindowController {
         Thread searchThread = new Thread(searchTask);
         searchThread.setDaemon(true);
         searchThread.start();
+    }
+
+    private String truncatePath(String path, int depth) {
+        if (path == null) return "";
+        String[] parts = path.split("[/\\\\]");
+        if (parts.length <= depth) {
+            return path;
+        }
+        StringJoiner joiner = new StringJoiner(File.separator);
+        for (int i = 0; i < depth; i++) {
+            joiner.add(parts[i]);
+        }
+        joiner.add("...");
+        return joiner.toString();
     }
 
     @FXML
