@@ -175,13 +175,23 @@ public class MainWindowController {
 
     @FXML
     private void performSearch() {
+        // Cancel any running search
         if (searchTask != null && searchTask.isRunning()) {
             searchTask.cancel(true);
         }
+        
+        // Clear previous results
+        searchResults.clear();
+        resultsTable.getSortOrder().clear();
+        resultsTable.getSortOrder().add(nameCol); // Reset default sort
+        
+        // Reset status
+        updateStatus("Searching...");
 
         String query = searchField.getText().trim();
         if (query.isEmpty()) {
             showAlert("Error", "Please enter a search query", Alert.AlertType.ERROR);
+            updateStatus("Error: No search query provided");
             return;
         }
 

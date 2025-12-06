@@ -30,6 +30,10 @@ public class SearchConfig {
     private List<SearchHistory> history = new ArrayList<>();
     private String theme = "Light";
     private int statusPathDepth = 4;
+    private int windowWidth = 1000;
+    private int windowHeight = 700;
+    private int windowX = -1;
+    private int windowY = -1;
 
     public static SearchConfig load() {
         File configFile = new File(CONFIG_FILE);
@@ -81,6 +85,9 @@ public class SearchConfig {
     }
 
     public void setMaxResults(int maxResults) {
+        if (maxResults <= 0) {
+            throw new IllegalArgumentException("Max results must be greater than 0");
+        }
         this.maxResults = maxResults;
     }
 
@@ -129,7 +136,42 @@ public class SearchConfig {
     }
 
     public void setStatusPathDepth(int statusPathDepth) {
+        if (statusPathDepth <= 0) {
+            throw new IllegalArgumentException("Status path depth must be greater than 0");
+        }
         this.statusPathDepth = statusPathDepth;
+    }
+
+    public int getWindowWidth() {
+        return windowWidth;
+    }
+
+    public void setWindowWidth(int windowWidth) {
+        this.windowWidth = windowWidth;
+    }
+
+    public int getWindowHeight() {
+        return windowHeight;
+    }
+
+    public void setWindowHeight(int windowHeight) {
+        this.windowHeight = windowHeight;
+    }
+
+    public int getWindowX() {
+        return windowX;
+    }
+
+    public void setWindowX(int windowX) {
+        this.windowX = windowX;
+    }
+
+    public int getWindowY() {
+        return windowY;
+    }
+
+    public void setWindowY(int windowY) {
+        this.windowY = windowY;
     }
 
     // ============================================

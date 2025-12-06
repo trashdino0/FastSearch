@@ -15,11 +15,12 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import javafx.concurrent.Task;
 
-public class SearchEngine {
+public class SearchEngine implements AutoCloseable {
     private final SearchConfig config;
     private final List<PathMatcher> excludeMatchers;
-    private ForkJoinPool forkJoinPool;
+    private final ForkJoinPool forkJoinPool;
     private Task<?> searchTask;
+    private static final int DEFAULT_PARALLELISM = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
 
     public SearchEngine(SearchConfig config) {
         this.config = config;
@@ -31,6 +32,7 @@ public class SearchEngine {
                 System.err.println("Invalid exclude pattern: " + pattern);
             }
         }
+        this.forkJoinPool = new ForkJoinPool(DEFAULT_PARALLELISM);
     }
 
     public void setSearchTask(Task<?> searchTask) {
@@ -41,14 +43,30 @@ public class SearchEngine {
         if (searchTask != null && !searchTask.isDone()) {
             searchTask.cancel(true);
         }
+        // Don't shutdown the pool here, just cancel running tasks
+        forkJoinPool.getQueuedSubmissionCount(); // This helps clear interrupted status
+    }
+    
+    /**
+     * Closes this resource, relinquishing any underlying resources.
+     * This method is invoked automatically on objects managed by the
+     * {@code try}-with-resources statement.
+     * 
+     * <p>It's recommended to use this class in a try-with-resources statement
+     * to ensure proper resource cleanup.
+     */
+    @Override
+    public void close() {
         if (forkJoinPool != null && !forkJoinPool.isShutdown()) {
-            forkJoinPool.shutdownNow();
+            forkJoinPool.shutdown();
         }
     }
 
     public void searchFilenameRealtime(String query, String extension, String customFolder, SearchFilters filters,
-                                       int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback, Consumer<String> statusCallback) {
-        forkJoinPool = new ForkJoinPool();
+                                     int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback, 
+                                     Consumer<String> statusCallback) {
+        // Clear any interrupted status from previous searches
+        Thread.interrupted();
         Set<String> searchRoots = getSearchRoots(customFolder);
         String pattern = buildPattern(query);
         Pattern regex = Pattern.compile(pattern, isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
@@ -59,9 +77,11 @@ public class SearchEngine {
     }
 
     public void searchContentRealtime(String text, String extension, String customFolder,
-                                      SearchFilters filters, int maxResults, boolean isCaseSensitive,
-                                      boolean isRegex, Consumer<FileResult> resultCallback, Consumer<String> statusCallback) {
-        forkJoinPool = new ForkJoinPool();
+                                    SearchFilters filters, int maxResults, boolean isCaseSensitive,
+                                    boolean isRegex, Consumer<FileResult> resultCallback, 
+                                    Consumer<String> statusCallback) {
+        // Clear any interrupted status from previous searches
+        Thread.interrupted();
         Set<String> searchRoots = getSearchRoots(customFolder);
         String patternString = isRegex ? text : Pattern.quote(text);
         int flags = isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
@@ -75,6 +95,7 @@ public class SearchEngine {
     private boolean isTextFile(Path file) {
         String name = file.getFileName().toString().toLowerCase();
 
+        // Check file extension first
         for (String ext : config.getTextExtensions()) {
             if (name.endsWith(ext.toLowerCase())) {
                 return true;
@@ -90,13 +111,13 @@ public class SearchEngine {
                     return false;
                 }
             }
+            return true; // No NUL bytes found, likely a text file
         } catch (IOException e) {
             // Log this, but assume it's not a text file if we can't read it
             System.err.println("Error sniffing file content for " + file + ": " + e.getMessage());
             return false;
         }
 
-        return true;
     }
 
     private boolean searchInFile(Path file, Pattern pattern) {
@@ -137,6 +158,9 @@ public class SearchEngine {
             File customDir = new File(customFolder);
             if (customDir.exists() && customDir.isDirectory()) {
                 roots.add(customDir.getAbsolutePath());
+                return roots;
+            } else {
+                // Return empty set if custom folder is specified but doesn't exist
                 return roots;
             }
         }
