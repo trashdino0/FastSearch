@@ -8,12 +8,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // ============================================
 // SEARCH CONFIG
 // ============================================
 public class SearchConfig {
+    private static final Logger logger = Logger.getLogger(SearchConfig.class.getName());
     private static final String CONFIG_FILE = System.getProperty("user.home") + "/.fastsearch.json";
 
     private int maxResults = 1000;
@@ -27,7 +31,7 @@ public class SearchConfig {
             ".c", ".cpp", ".h", ".hpp", ".cs", ".go", ".rs", ".rb", ".php",
             ".sh", ".bat", ".sql", ".properties", ".gradle", ".maven"
     ));
-    private List<SearchHistory> history = new ArrayList<>();
+    private List<SearchHistory> history = new LinkedList<>();
     private String theme = "Light";
     private int statusPathDepth = 4;
     private int windowWidth = 1000;
@@ -49,12 +53,12 @@ public class SearchConfig {
                     .create();
             SearchConfig config = gson.fromJson(reader, SearchConfig.class);
             if (config == null) {
-                System.err.println("Config file was empty or invalid, creating default config.");
+                logger.log(Level.WARNING, "Config file was empty or invalid, creating default config.");
                 return new SearchConfig();
             }
             return config;
         } catch (Exception e) {
-            System.err.println("Failed to load config: " + e.getMessage());
+            logger.log(Level.SEVERE, "Failed to load config", e);
             return new SearchConfig();
         }
     }
@@ -67,7 +71,7 @@ public class SearchConfig {
                     .create();
             gson.toJson(this, writer);
         } catch (Exception e) {
-            System.err.println("Failed to save config: " + e.getMessage());
+            logger.log(Level.SEVERE, "Failed to save config", e);
         }
     }
 

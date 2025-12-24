@@ -48,27 +48,10 @@ public class FileResultTest {
     }
 
     @Test
-    void testFileResultSizeFormatted() {
-        FileResult result = new FileResult(testFile.toString());
-        String formatted = result.getSizeFormatted();
-        assertNotNull(formatted);
-        assertFalse(formatted.isEmpty());
-    }
-
-    @Test
     void testFileResultModified() {
         FileResult result = new FileResult(testFile.toString());
         LocalDateTime modified = result.getModified();
         assertNotNull(modified);
-    }
-
-    @Test
-    void testFileResultModifiedFormatted() {
-        FileResult result = new FileResult(testFile.toString());
-        String formatted = result.getModifiedFormatted();
-        assertNotNull(formatted);
-        // Should be in format yyyy-MM-dd HH:mm
-        assertTrue(formatted.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}"));
     }
 
     @Test
@@ -99,23 +82,6 @@ public class FileResultTest {
     }
 
     @Test
-    void testSizeFormattingBytes() throws Exception {
-        // Create a small file
-        Path smallFile = tempDir.resolve("small.txt");
-        Files.write(smallFile, new byte[512]);
-        FileResult result = new FileResult(smallFile.toString());
-        assertTrue(result.getSizeFormatted().matches("\\d+ B"));
-    }
-    @Test
-    void testSizeFormattingKB() throws Exception {
-        // Create a 10 KB file
-        Path mediumFile = tempDir.resolve("medium.txt");
-        Files.write(mediumFile, new byte[10240]);
-        FileResult result = new FileResult(mediumFile.toString());
-        assertTrue(result.getSizeFormatted().contains("KB"));
-    }
-
-    @Test
     void testFileWithoutExtension() throws Exception {
         Path noExtFile = tempDir.resolve("README");
         Files.writeString(noExtFile, "readme content");
@@ -133,8 +99,6 @@ public class FileResultTest {
         assertNotNull(result.sizeProperty());
         assertNotNull(result.typeProperty());
         assertNotNull(result.modifiedProperty());
-        assertNotNull(result.sizeFormattedProperty());
-        assertNotNull(result.modifiedFormattedProperty());
     }
 
     @Test
@@ -144,8 +108,7 @@ public class FileResultTest {
         
         assertEquals("nonexistent.txt", result.getName());
         assertEquals(0, result.getSize());
-        assertEquals("0 B", result.getSizeFormatted());
-        assertEquals("Unknown", result.getModifiedFormatted());
+        assertNotNull(result.getModified());
     }
 
     @Test

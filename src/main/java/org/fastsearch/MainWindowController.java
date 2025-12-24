@@ -15,11 +15,13 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.function.Consumer;
-import java.util.StringJoiner;
 
 public class MainWindowController {
     private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
@@ -69,11 +71,11 @@ public class MainWindowController {
     @FXML
     private TableColumn<FileResult, String> pathCol;
     @FXML
-    private TableColumn<FileResult, String> sizeCol;
+    private TableColumn<FileResult, Long> sizeCol;
     @FXML
     private TableColumn<FileResult, String> typeCol;
     @FXML
-    private TableColumn<FileResult, String> modifiedCol;
+    private TableColumn<FileResult, LocalDateTime> modifiedCol;
 
     private long searchStartTime;
     private javafx.animation.Timeline timerTimeline;
@@ -99,42 +101,40 @@ public class MainWindowController {
 
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         pathCol.setCellValueFactory(new PropertyValueFactory<>("path"));
-        sizeCol.setCellValueFactory(new PropertyValueFactory<>("sizeFormatted"));
+        sizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
         typeCol.setCellValueFactory(new PropertyValueFactory<>("type"));
-        modifiedCol.setCellValueFactory(new PropertyValueFactory<>("modifiedFormatted"));
+        modifiedCol.setCellValueFactory(new PropertyValueFactory<>("modified"));
 
         // Enable sorting
         nameCol.setSortable(true);
         pathCol.setSortable(true);
         typeCol.setSortable(true);
-
-        // Custom comparators for numeric/date sorting
         sizeCol.setSortable(true);
-        sizeCol.setComparator((s1, s2) -> {
-            FileResult fr1 = sizeCol.getTableView().getItems().stream()
-                    .filter(fr -> fr.getSizeFormatted().equals(s1))
-                    .findFirst().orElse(null);
-            FileResult fr2 = sizeCol.getTableView().getItems().stream()
-                    .filter(fr -> fr.getSizeFormatted().equals(s2))
-                    .findFirst().orElse(null);
-            if (fr1 != null && fr2 != null) {
-                return Long.compare(fr1.getSize(), fr2.getSize());
+        modifiedCol.setSortable(true);
+
+        sizeCol.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Long size, boolean empty) {
+                super.updateItem(size, empty);
+                if (empty || size == null) {
+                    setText(null);
+                } else {
+                    setText(formatSize(size));
+                }
             }
-            return 0; // Or handle nulls as appropriate
         });
 
-        modifiedCol.setSortable(true);
-        modifiedCol.setComparator((s1, s2) -> {
-            FileResult fr1 = modifiedCol.getTableView().getItems().stream()
-                    .filter(fr -> fr.getModifiedFormatted().equals(s1))
-                    .findFirst().orElse(null);
-            FileResult fr2 = modifiedCol.getTableView().getItems().stream()
-                    .filter(fr -> fr.getModifiedFormatted().equals(s2))
-                    .findFirst().orElse(null);
-            if (fr1 != null && fr2 != null) {
-                return fr1.getModified().compareTo(fr2.getModified());
+        modifiedCol.setCellFactory(tc -> new TableCell<>() {
+            private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            @Override
+            protected void updateItem(LocalDateTime modified, boolean empty) {
+                super.updateItem(modified, empty);
+                if (empty || modified == null) {
+                    setText(null);
+                } else {
+                    setText(formatter.format(modified));
+                }
             }
-            return 0; // Or handle nulls as appropriate
         });
 
         resultsTable.setItems(searchResults);
@@ -179,12 +179,12 @@ public class MainWindowController {
         if (searchTask != null && searchTask.isRunning()) {
             searchTask.cancel(true);
         }
-        
+
         // Clear previous results
         searchResults.clear();
         resultsTable.getSortOrder().clear();
         resultsTable.getSortOrder().add(nameCol); // Reset default sort
-        
+
         // Reset status
         updateStatus("Searching...");
 
@@ -223,9 +223,7 @@ public class MainWindowController {
                 updateMessage("Searching...");
                 Consumer<String> statusCallback = (status) -> {
                     String truncatedPath = truncatePath(status, config.getStatusPathDepth());
-                    Platform.runLater(() -> {
-                        updateStatus(truncatedPath);
-                    });
+                    Platform.runLater(() -> updateStatus(truncatedPath));
                 };
 
                 try {
@@ -464,9 +462,10 @@ public class MainWindowController {
             try (PrintWriter writer = new PrintWriter(file)) {
                 if (file.getName().endsWith(".csv")) {
                     writer.println("Name,Path,Size,Type,Modified");
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                     for (FileResult r : searchResults) {
                         writer.printf("\"%s\",\"%s\",%d,\"%s\",\"%s\"%n",
-                                r.getName(), r.getPath(), r.getSize(), r.getType(), r.getModifiedFormatted());
+                                r.getName(), r.getPath(), r.getSize(), r.getType(), formatter.format(r.getModified()));
                     }
                 } else {
                     for (FileResult r : searchResults) {
@@ -541,4 +540,12 @@ public class MainWindowController {
             return null;
         }
     }
+
+    private String formatSize(long size) {
+        if (size < 1024) return size + " B";
+        if (size < 1024 * 1024) return String.format("%.1f KB", size / 1024.0);
+        if (size < 1024 * 1024 * 1024) return String.format("%.1f MB", size / (1024.0 * 1024.0));
+        return String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0));
+    }
 }
+

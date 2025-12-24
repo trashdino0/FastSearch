@@ -1,26 +1,31 @@
 package org.fastsearch;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javafx.concurrent.Task;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javafx.concurrent.Task;
 
 public class SearchEngine implements AutoCloseable {
+    private static final Logger logger = Logger.getLogger(SearchEngine.class.getName());
+    private static final int DEFAULT_PARALLELISM = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
     private final SearchConfig config;
     private final List<PathMatcher> excludeMatchers;
     private final ForkJoinPool forkJoinPool;
     private Task<?> searchTask;
-    private static final int DEFAULT_PARALLELISM = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
 
     public SearchEngine(SearchConfig config) {
         this.config = config;
@@ -29,7 +34,7 @@ public class SearchEngine implements AutoCloseable {
             try {
                 excludeMatchers.add(FileSystems.getDefault().getPathMatcher("glob:**/" + pattern));
             } catch (Exception e) {
-                System.err.println("Invalid exclude pattern: " + pattern);
+                logger.log(Level.WARNING, "Invalid exclude pattern: " + pattern, e);
             }
         }
         this.forkJoinPool = new ForkJoinPool(DEFAULT_PARALLELISM);
@@ -46,12 +51,12 @@ public class SearchEngine implements AutoCloseable {
         // Don't shutdown the pool here, just cancel running tasks
         forkJoinPool.getQueuedSubmissionCount(); // This helps clear interrupted status
     }
-    
+
     /**
      * Closes this resource, relinquishing any underlying resources.
      * This method is invoked automatically on objects managed by the
      * {@code try}-with-resources statement.
-     * 
+     *
      * <p>It's recommended to use this class in a try-with-resources statement
      * to ensure proper resource cleanup.
      */
@@ -63,8 +68,8 @@ public class SearchEngine implements AutoCloseable {
     }
 
     public void searchFilenameRealtime(String query, String extension, String customFolder, SearchFilters filters,
-                                     int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback, 
-                                     Consumer<String> statusCallback) {
+                                       int maxResults, boolean isCaseSensitive, Consumer<FileResult> resultCallback,
+                                       Consumer<String> statusCallback) {
         // Clear any interrupted status from previous searches
         Thread.interrupted();
         Set<String> searchRoots = getSearchRoots(customFolder);
@@ -77,9 +82,9 @@ public class SearchEngine implements AutoCloseable {
     }
 
     public void searchContentRealtime(String text, String extension, String customFolder,
-                                    SearchFilters filters, int maxResults, boolean isCaseSensitive,
-                                    boolean isRegex, Consumer<FileResult> resultCallback, 
-                                    Consumer<String> statusCallback) {
+                                      SearchFilters filters, int maxResults, boolean isCaseSensitive,
+                                      boolean isRegex, Consumer<FileResult> resultCallback,
+                                      Consumer<String> statusCallback) {
         // Clear any interrupted status from previous searches
         Thread.interrupted();
         Set<String> searchRoots = getSearchRoots(customFolder);
@@ -114,7 +119,7 @@ public class SearchEngine implements AutoCloseable {
             return true; // No NUL bytes found, likely a text file
         } catch (IOException e) {
             // Log this, but assume it's not a text file if we can't read it
-            System.err.println("Error sniffing file content for " + file + ": " + e.getMessage());
+            logger.log(Level.WARNING, "Error sniffing file content for " + file + ": " + e.getMessage(), e);
             return false;
         }
 
@@ -133,6 +138,7 @@ public class SearchEngine implements AutoCloseable {
         }
         return false;
     }
+
     private boolean shouldExclude(Path path) {
         for (PathMatcher matcher : excludeMatchers) {
             if (matcher.matches(path)) {
@@ -244,7 +250,7 @@ public class SearchEngine implements AutoCloseable {
                         }
                     } catch (IOException e) {
                         if (!isSearchCancelled()) {
-                            System.err.println("Error reading directory: " + root);
+                            logger.log(Level.SEVERE, "Error reading directory: " + root, e);
                         }
                     }
                 }
@@ -289,7 +295,7 @@ public class SearchEngine implements AutoCloseable {
                 }
             } catch (Exception e) {
                 if (!isSearchCancelled()) {
-                    System.err.println("Error processing " + file + ": " + e.getMessage());
+                    logger.log(Level.SEVERE, "Error processing " + file + ": " + e.getMessage(), e);
                 }
             }
         }

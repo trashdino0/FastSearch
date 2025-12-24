@@ -6,7 +6,6 @@ import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 /**
@@ -18,8 +17,6 @@ public class FileResult {
     private final LongProperty size;
     private final StringProperty type;
     private final ObjectProperty<LocalDateTime> modified;
-    private final StringProperty sizeFormatted;
-    private final StringProperty modifiedFormatted;
 
     public FileResult(String path) {
         File file = new File(path);
@@ -35,15 +32,9 @@ public class FileResult {
                     ZoneId.systemDefault()
             );
             this.modified = new SimpleObjectProperty<>(modTime);
-            this.sizeFormatted = new SimpleStringProperty(formatSize(file.length()));
-            this.modifiedFormatted = new SimpleStringProperty(
-                    modTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-            );
         } else {
             this.size = new SimpleLongProperty(0);
             this.modified = new SimpleObjectProperty<>(LocalDateTime.now());
-            this.sizeFormatted = new SimpleStringProperty("0 B");
-            this.modifiedFormatted = new SimpleStringProperty("Unknown");
         }
     }
 
@@ -82,13 +73,6 @@ public class FileResult {
         return typeMap.getOrDefault(ext, ext.isEmpty() ? "File" : ext);
     }
 
-    private String formatSize(long size) {
-        if (size < 1024) return size + " B";
-        if (size < 1024 * 1024) return String.format("%.1f KB", size / 1024.0);
-        if (size < 1024 * 1024 * 1024) return String.format("%.1f MB", size / (1024.0 * 1024));
-        return String.format("%.2f GB", size / (1024.0 * 1024 * 1024));
-    }
-
     // JavaFX Property getters (REQUIRED for TableView)
     public StringProperty nameProperty() {
         return name;
@@ -108,14 +92,6 @@ public class FileResult {
 
     public ObjectProperty<LocalDateTime> modifiedProperty() {
         return modified;
-    }
-
-    public StringProperty sizeFormattedProperty() {
-        return sizeFormatted;
-    }
-
-    public StringProperty modifiedFormattedProperty() {
-        return modifiedFormatted;
     }
 
     // Standard getters
@@ -158,13 +134,5 @@ public class FileResult {
 
     public void setModified(LocalDateTime modified) {
         this.modified.set(modified);
-    }
-
-    public String getSizeFormatted() {
-        return sizeFormatted.get();
-    }
-
-    public String getModifiedFormatted() {
-        return modifiedFormatted.get();
     }
 }
