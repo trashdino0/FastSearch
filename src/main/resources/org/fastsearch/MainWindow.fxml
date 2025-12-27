@@ -50,43 +50,54 @@
     </top>
 
     <center>
-        <VBox spacing="10">
-            <padding>
-                <Insets top="10" right="0" bottom="0" left="0"/>
-            </padding>
-            <Label text="Search Results" styleClass="results-label"/>
-            <TableView fx:id="resultsTable" VBox.vgrow="ALWAYS">
-                <placeholder>
-                    <Label text="No results yet. Enter a search query and click Search."/>
-                </placeholder>
-                <columns>
-                    <TableColumn fx:id="nameCol" text="Name" prefWidth="200"/>
-                    <TableColumn fx:id="pathCol" text="Path" prefWidth="350"/>
-                    <TableColumn fx:id="sizeCol" text="Size" prefWidth="100"/>
-                    <TableColumn fx:id="typeCol" text="Type" prefWidth="80"/>
-                    <TableColumn fx:id="modifiedCol" text="Modified" prefWidth="120"/>
-                </columns>
-                <contextMenu>
-                    <ContextMenu>
-                        <items>
-                            <MenuItem text="Open" onAction="#openSelected"/>
-                            <MenuItem text="Open Folder" onAction="#openFolderSelected"/>
-                            <MenuItem text="Copy Path" onAction="#copyPathSelected"/>
-                            <SeparatorMenuItem/>
-                            <MenuItem text="Delete" onAction="#deleteSelected" styleClass="delete-button"/>
-                        </items>
-                    </ContextMenu>
-                </contextMenu>
-            </TableView>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button text="Open" onAction="#openSelected"/>
-                <Button text="Open Folder" onAction="#openFolderSelected"/>
-                <Button text="Copy Path" onAction="#copyPathSelected"/>
-                <Button text="Delete" onAction="#deleteSelected" styleClass="delete-button"/>
-                <Button text="Export Results" onAction="#exportResults"/>
-                <Button text="Clear" onAction="#clearResults"/>
-            </HBox>
-        </VBox>
+        <SplitPane dividerPositions="0.7" VBox.vgrow="ALWAYS">
+            <items>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="0" bottom="0" left="0"/>
+                    </padding>
+                    <Label text="Search Results" styleClass="results-label"/>
+                    <TableView fx:id="resultsTable" VBox.vgrow="ALWAYS">
+                        <placeholder>
+                            <Label text="No results yet. Enter a search query and click Search."/>
+                        </placeholder>
+                        <columns>
+                            <TableColumn fx:id="nameCol" text="Name" prefWidth="200"/>
+                            <TableColumn fx:id="pathCol" text="Path" prefWidth="350"/>
+                            <TableColumn fx:id="sizeCol" text="Size" prefWidth="100"/>
+                            <TableColumn fx:id="typeCol" text="Type" prefWidth="80"/>
+                            <TableColumn fx:id="modifiedCol" text="Modified" prefWidth="120"/>
+                        </columns>
+                        <contextMenu>
+                            <ContextMenu>
+                                <items>
+                                    <MenuItem text="Open" onAction="#openSelected"/>
+                                    <MenuItem text="Open Folder" onAction="#openFolderSelected"/>
+                                    <MenuItem text="Copy Path" onAction="#copyPathSelected"/>
+                                    <SeparatorMenuItem/>
+                                    <MenuItem text="Delete" onAction="#deleteSelected" styleClass="delete-button"/>
+                                </items>
+                            </ContextMenu>
+                        </contextMenu>
+                    </TableView>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button text="Open" onAction="#openSelected"/>
+                        <Button text="Open Folder" onAction="#openFolderSelected"/>
+                        <Button text="Copy Path" onAction="#copyPathSelected"/>
+                        <Button text="Delete" onAction="#deleteSelected" styleClass="delete-button"/>
+                        <Button text="Export Results" onAction="#exportResults"/>
+                        <Button text="Clear" onAction="#clearResults"/>
+                    </HBox>
+                </VBox>
+                <VBox fx:id="previewVBox" spacing="5" styleClass="preview-pane">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <Label text="Preview" styleClass="results-label"/>
+                    <Label text="Select a file to see a preview."/>
+                </VBox>
+            </items>
+        </SplitPane>
     </center>
 
     <bottom>

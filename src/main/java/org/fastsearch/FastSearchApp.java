@@ -47,6 +47,19 @@ public class FastSearchApp extends Application {
         }
     }
 
+    public static String getStylesheet(String theme) {
+        String stylesheet = "styles-dark.css";
+        if ("Light".equalsIgnoreCase(theme)) {
+            stylesheet = "styles-light.css";
+        }
+        try {
+            return FastSearchApp.class.getResource(stylesheet).toExternalForm();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error getting stylesheet URL: " + stylesheet, e);
+            return null;
+        }
+    }
+
     @Override
     public void start(Stage primaryStage) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindow.fxml"));

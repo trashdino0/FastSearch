@@ -224,3 +224,46 @@
     -fx-border-width: 1 0 0 0;
     -fx-border-color: #DCDCDC;
 }
+
+/* --- Preview Pane & Code Area --- */
+.preview-pane {
+    -fx-background-color: #FFFFFF; /* VS Code Light+ Background */
+}
+.code-area {
+    -fx-background-color: #FFFFFF;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 14px;
+}
+.code-area .text {
+    -fx-fill: #000000; /* VS Code Default Text */
+}
+.code-area .keyword {
+    -fx-fill: #0000FF; /* VS Code Blue */
+    -fx-font-weight: bold;
+}
+.code-area .paren,
+.code-area .brace,
+.code-area .bracket {
+    -fx-fill: #000000;
+}
+.code-area .semicolon {
+    -fx-fill: #000000;
+}
+.code-area .string {
+    -fx-fill: #A31515; /* VS Code Red */
+}
+.code-area .comment {
+    -fx-fill: #008000; /* VS Code Green */
+    -fx-font-style: italic;
+}
+.code-area .annotation {
+    -fx-fill: #267F99; /* VS Code Teal */
+}
+.code-area .number {
+    -fx-fill: #098658; /* VS Code Dark Green */
+}
+.code-area .search-term {
+    -rtfx-background-color: yellow;
+    -fx-fill: black;
+    -fx-font-weight: bold;
+}
